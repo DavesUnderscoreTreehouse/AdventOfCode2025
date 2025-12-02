@@ -6,7 +6,7 @@ using namespace std;
 int main() 
 {
   // Filepath for input data
-  string filepath = "input.txt";
+  string filepath = "../input.txt";
   // Read from the text file
   ifstream f(filepath);
 
