@@ -27,13 +27,11 @@ int main()
       // remove odd length nums
       if (((idStr.length() % 2) == 0) && (idStr.substr(0, (idStr.length() / 2)) == idStr.substr(idStr.length() / 2, (idStr.length() / 2)))) {
         invalid = true;
-        //cout << "part 1 catch - invalid: " << idStr << "\n";
       }
       else {
         if (idStr.length() == 3) {
           if ((idStr[0] == idStr[1]) && (idStr[0] == idStr[2])) {
             invalid = true;
-            //cout << "3 digit match - invalid: " << idStr << "\n";
           }
         }
         else {
@@ -41,31 +39,20 @@ int main()
             bool part2internalinvalid = true;
             for (int j = 0; j < idStr.length() / i; j++) {        // iterate through positions
               if ((idStr.substr(0, i) == idStr.substr(i * j, i)) && ((idStr.length() % i) == 0)) {
-                //cout << "Invalid: " << idStr.substr(0,i) << ", " << idStr.substr(i * j, i) << "\n";
               }
               else {
                 part2internalinvalid = false;
-                //cout << "Valid: " << idStr.substr(0,i) << ", " << idStr.substr(i * j, i) << "\n";
               }
             }
             if (part2internalinvalid) {
-              //cout << "internal part 2 flag\n";
               invalid = true;
             }
-            //cout << "invalid: " << invalid << "\n";
-            //cout << "pattern length " << i << " checked\n";
           }
         }
       }
       if (invalid) {
-          //cout << "invalid: " << invalid << "\n";
-          //cout << "Match: " << id << "\n\n";
-          total += id;
-          //cout << "Total so far: " << total << "\n";
-        }
-      // else {
-      //   cout << "No match: " << idStr << "\n\n";
-      // }
+        total += id;
+      }
     }
   } 
   while (f.peek() != EOF);
