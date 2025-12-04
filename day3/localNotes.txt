@@ -1,0 +1,68 @@
+987654321111111
+811111111111119
+234234234234278
+818181911112111
+
+
+
+if (c1 >= '0' && c1 <= '9') {
+        int num = (c1 - '0');
+        if (num > largestNum[0][0]) {
+          largestNum[0][0] = num;
+          largestNum[1][0] = i;
+        } else if (num > largestNum[0][1]) {
+          largestNum[0][1] = num;
+          largestNum[1][1] = i;
+        } else if (num > largestNum[0][2]) {
+          largestNum[0][2] = num;
+          largestNum[1][2] = i;
+        }
+		
+		
+cout << "largest: " << largestNum[0][0] << " of index: " << largestNum[1][0] << "\t| 2nd largest: " << largestNum[0][1] << " of index: " << largestNum[1][1] << "\t| 3rd largest: " << largestNum[0][2] << " of index: " << largestNum[1][2] << "\n";
+
+    // combine in order
+    int min_ele = *min_element(largestNum[1], largestNum[1] + arrLen);
+    int max_ele = *max_element(largestNum[1], largestNum[1] + arrLen);
+    for (int i = 0; i < arrLen; i++) {
+      if (largestNum[1][i] == min_ele) {
+        s_output1 = to_string(largestNum[0][i]) + s_output1;
+      } else if ((largestNum[1][i] > min_ele) && (largestNum[1][i] < max_ele)) {
+        s_output1 = s_output1 + to_string(largestNum[0][i]);
+        s_output2 = to_string(largestNum[0][i]) + s_output2;
+      } else if (largestNum[1][i] == max_ele) {
+        s_output2 = s_output2 + to_string(largestNum[0][i]);
+      }
+    }
+    cout << "s_output1: " << s_output1 << "\n";
+    cout << "s_output2: " << s_output2 << "\n";
+    cout << "\n";
+	
+	
+#include <iostream>
+
+int array1[] = {1, 7, 3, 9, 5};
+int array2[] = {5, 7, 8, 9, 5};
+
+int compare (const void * a, const void * b) {
+  int diff = array2[*(int*)a] - array2[*(int*)b];
+  return  (0 < diff) - (diff < 0);
+}
+
+int main(void) {
+  int perm[5], i;
+  int res[5];
+  // populate array
+  for (i = 0 ; i != 5 ; i++) {
+    perm[i] = i;
+  }
+  // sort perm
+  qsort (perm, 5, sizeof(int), compare);
+  for (i = 0 ; i != 5 ; i++) {
+    res[i] = array1[perm[i]];
+  }
+  for (i = 0 ; i != 5 ; i++) {
+    printf("%d\n", res[i]);
+  }
+  return 0;
+}
