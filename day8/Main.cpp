@@ -58,13 +58,13 @@ int main()
   oldDist = -1;
   closeId = -1;
   for (int i = 0; i < lineCount; i++) {
-    cout << "xDist\t" << "yDist\t" << "zDist\t" << "Dist\n";
+    //cout << "xDist\t" << "yDist\t" << "zDist\t" << "Dist\n";
     for (int j = 0; j < lineCount; j++) {
       xDist = junctions[i].x - junctions[j].x;
       yDist = junctions[i].y - junctions[j].y;
       zDist = junctions[i].z - junctions[j].z;
       dist = sqrt(pow(xDist, 2) + pow(yDist, 2) + pow(zDist, 2));
-      cout << xDist << "\t" << yDist << "\t" << zDist << "\t" << dist << "\n";
+      //cout << xDist << "\t" << yDist << "\t" << zDist << "\t" << dist << "\n";
       if ((dist == 0) && (j == 0)) {
         oldDist = 100000;
       }
@@ -75,20 +75,17 @@ int main()
     }
     junctions[i].connectedId = closeId;
     junctions[i].connectionDist = oldDist;
-    cout << "Junction:\n";
-    cout << junctions[i].x << "\t" << junctions[i].y << "\t" << junctions[i].z << "\t" << junctions[i].connectionDist << "\n\n";
+    //cout << "Junction:\n";
+    //cout << junctions[i].x << "\t" << junctions[i].y << "\t" << junctions[i].z << "\t" << junctions[i].connectionDist << "\n\n";
   }
   
   // sort by distance
   sort(junctions, junctions + lineCount, compareJunctions);
-  
-  cout << "Sorted Junctions:\n";
-  cout << "ID" << "\t" << "X" << "\t" << "Y" << "\t" << "Z" << "\t" << "Dist" << "\t" << "ConnID" << "\n";
-  for (Junction j : junctions) {
-    cout << j.id << "\t" << j.x << "\t" << j.y << "\t" << j.z << "\t" << j.connectionDist << "\t" << j.connectedId << "\n";
-  }
+
+  cout << "ID" << "\t" << "ConnId" << "\t" << "Dist" << "\t" << "X" << "\t" << "Y" << "\t" << "Z" << "\n";
+  for (Junction j : junctions) 
+    cout << j.id << "\t" << j.connectedId << "\t" << j.connectionDist << "\t" << j.x << "\t" << j.y << "\t" << j.z << "\n";
   cout << "\n";
-  
   // if junctions in same circuit, ignore
   // else, join
   //(sizeof(junctions) / sizeof(junctions[0]))
@@ -143,12 +140,11 @@ int main()
   // sort
   sort(circuitSizes.begin(), circuitSizes.end(), greater<>());
   
-  cout << "Circuit sizes:\n";
   circuitTotal = 1;
+  cout << "Circuit sizes:\n";
   for (int i = 0; i < circuitSizes.size(); i++) {
-    if (i < 3) {
+    if (i < 3)
       circuitTotal *= circuitSizes.at(i);
-    }
     cout << circuitSizes.at(i) << "\n";
   }
   
