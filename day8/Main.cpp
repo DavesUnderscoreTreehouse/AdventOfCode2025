@@ -19,13 +19,12 @@ bool compareJunctions(Junction a, Junction b)
     // returns true for higher total
     if (a.connectionDist != b.connectionDist)
         return a.connectionDist < b.connectionDist;
-
     return (false);
 }
 
 int main() 
 {
-  int lineCount, closeId;
+  int lineCount, closeId, circuitTotal;
   double dist, oldDist, xDist, yDist, zDist;
   char comma;
   string filepath, inputText;
@@ -38,20 +37,21 @@ int main()
   while (getline(f, inputText)) {
     lineCount++;
   }
+  cout << "Line count: " <<lineCount << "\n\n";
   
   f.clear();
-  f.seekg(0);
+  f.seekg(0, ios::beg);
   
   Junction junctions[lineCount];
   lineCount = 0;
-  while (getline(f, inputText)) {
+  do {
     Junction junction;
     junction.id = lineCount;
     f >> junction.x >> comma >> junction.y >> comma >> junction.z;
     junctions[lineCount] = junction;
     cout << junction.x << "\t, " << junction.y << "\t, " << junction.z << "\n";
     lineCount++;
-  }
+  } while (f.peek() != EOF);
   cout << "\n";
   
   // find closest junction to each junction
@@ -82,15 +82,24 @@ int main()
   // sort by distance
   sort(junctions, junctions + lineCount, compareJunctions);
   
+  cout << "Sorted Junctions:\n";
+  cout << "ID" << "\t" << "X" << "\t" << "Y" << "\t" << "Z" << "\t" << "Dist" << "\t" << "ConnID" << "\n";
+  for (Junction j : junctions) {
+    cout << j.id << "\t" << j.x << "\t" << j.y << "\t" << j.z << "\t" << j.connectionDist << "\t" << j.connectedId << "\n";
+  }
+  cout << "\n";
+  
   // if junctions in same circuit, ignore
   // else, join
-  for (int i = 0; i < ((sizeof(junctions) / sizeof(junctions[0])) - 1); i++) {
+  //(sizeof(junctions) / sizeof(junctions[0]))
+  for (int i = 0; i < 10; i++) {
     // find connected junc obj
     if (junctions[i].connectedId == -1) {
       continue;
-    } 
+    }
     int j;
-    for (j = 0; j < ((sizeof(junctions) / sizeof(junctions[0])) - 1); j++) {
+    cout << "For junction " << junctions[i].id << "\n";
+    for (j = 0; j < ((sizeof(junctions) / sizeof(junctions[0]))); j++) {
       if (junctions[i].connectedId == junctions[j].id) {
         cout << "Circuit match found: " << junctions[i].id << " connected to " << junctions[j].id << "\n";
         break;
@@ -105,25 +114,25 @@ int main()
     else if (junctions[i].circuitNo == -1) {
       junctions[i].circuitNo = junctions[j].circuitNo;
       circuitSizes.at(junctions[j].circuitNo)++;
-      cout << "Junction " << junctions[i].id << " added to circuit " << junctions[j].circuitNo << " new size " << circuitSizes.at(junctions[j].circuitNo) << "\n";
+      cout << "Junctions " << junctions[i].id << " added to circuit " << junctions[j].circuitNo << " new size " << circuitSizes.at(junctions[j].circuitNo) << "\n";
     }
     else if (junctions[j].circuitNo == -1) {
       junctions[j].circuitNo = junctions[i].circuitNo;
       circuitSizes.at(junctions[i].circuitNo)++;
-      cout << "Junction " << junctions[j].id << " added to circuit " << junctions[i].circuitNo << " new size " << circuitSizes.at(junctions[i].circuitNo) << "\n";
+      cout << "Junctions " << junctions[j].id << " added to circuit " << junctions[i].circuitNo << " new size " << circuitSizes.at(junctions[i].circuitNo) << "\n";
     }
     else if (junctions[i].circuitNo == junctions[j].circuitNo) {
       continue; // ignore
     }
     else {
-      // merge circuits
+      //  merger circuitSizes
       int oldCircuitNo = junctions[j].circuitNo;
       int newCircuitNo = junctions[i].circuitNo;
       circuitSizes.at(newCircuitNo) += circuitSizes.at(oldCircuitNo);
       circuitSizes.at(oldCircuitNo) = 0;
       cout << "Merging circuits " << oldCircuitNo << " into " << newCircuitNo << " new size " << circuitSizes.at(newCircuitNo) << "\n";
       // update all junctions with old circuit no
-      for (int k = 0; k < ((sizeof(junctions) / sizeof(junctions[0])) - 1); k++) {
+      for (int k = 0; k < ((sizeof(junctions) / sizeof(junctions[0]))); k++) {
         if (junctions[k].circuitNo == oldCircuitNo) {
           junctions[k].circuitNo = newCircuitNo;
         }
@@ -135,11 +144,15 @@ int main()
   sort(circuitSizes.begin(), circuitSizes.end(), greater<>());
   
   cout << "Circuit sizes:\n";
-  for (int i : circuitSizes) {
-    cout << i << "\n";
+  circuitTotal = 1;
+  for (int i = 0; i < circuitSizes.size(); i++) {
+    if (i < 3) {
+      circuitTotal *= circuitSizes.at(i);
+    }
+    cout << circuitSizes.at(i) << "\n";
   }
   
   // multiply 3 largest
-  cout << "Total is: " << circuitSizes.at(0) * circuitSizes.at(1) * circuitSizes.at(2) << "\n";
+  cout << "Total is: " << circuitTotal << "\n";
   return 0;
 }
