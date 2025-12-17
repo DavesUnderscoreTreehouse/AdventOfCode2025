@@ -1,91 +1,77 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
-#include <algorithm>
-
 using namespace std;
 
-struct Battery {
-  int index, charge;
-};
-vector<Battery> vBatteries;
-
-bool compareIndex (Battery i, Battery j) {
-  return (i.index < j.index);
+std::string trim(const std::string& line)
+{
+    const char* WhiteSpace = " \t\v\r\n";
+    std::size_t start = line.find_first_not_of(WhiteSpace);
+    std::size_t end = line.find_last_not_of(WhiteSpace);
+    return start == end ? std::string() : line.substr(start, end - start + 1);
 }
 
-bool compareCharge (Battery i, Battery j) {
-  return (i.charge > j.charge);
-}
-
-bool compareGrouped (Battery i, Battery j) {
-  if(i.charge != j.charge)
-      return (i.charge > j.charge);
-  if(i.index != j.index)
-      return (i.index > j.index);
-  return false;
-}
-
-int main() {
-  // Filepath for input data
-  string filepath = "input.txt";
-  // Read from the text file
+int main() 
+{
+  char c1, c2;
+  int lineCount, lowDigit, runCount, i1, i2;
+  long long int bankJoltage, totalJoltage;
+  string filepath, inputText;
+  
+  filepath = "input.txt";
   ifstream f(filepath);
   
-  int64_t joltage = 0;
-  int vBatteriesLen, i, j;
-  string inputText, concat;
-  
-  // For each line
+  lineCount = 0;
   while (getline(f, inputText)) {
-    cout << "Input: " << inputText << "\n";
-    // Clear previous line
-    vBatteries.erase (vBatteries.begin(), vBatteries.end());
-    // Load line into int array
-    for (i = 0; i < inputText.length(); i++) {
-      if (isdigit(inputText[i])) {
-        char c = inputText[i];
-        struct Battery b = {i, (c- '0')};
-        vBatteries.push_back(b);
+    lineCount++;
+  }
+  cout << "Line count: " << lineCount << "\n\n";
+  
+  f.clear();
+  f.seekg(0, ios::beg);
+  
+  string banks[lineCount];
+  lineCount = 0;
+  while (getline(f, inputText)) {
+    banks[lineCount] = inputText;
+    //cout << banks[lineCount] << "\n";
+    lineCount++;
+  }
+  cout << "\n";
+  
+  totalJoltage = 0;
+  for (string bank : banks) {
+    bank = trim(bank);
+    cout << bank << "\n";
+    //until bank has 12 batteries
+    runCount = 0;
+    while ((bank.length() > 12)) {
+      lowDigit = -1;
+      for (int i = 0; i < bank.length(); i++) {
+        // if first digit less than second, remove and break
+        // else if at last digitcontinue
+        c1 = bank[i];
+        c2 = bank[i + 1];
+        i1 = (c1 - '0');
+        i2 = (c2 - '0');
+        if (i1 < i2) {
+          lowDigit = i;
+          //cout << "Break" << "\n";
+          break;
+        } else if (i + 1 == bank.length()) { //(lowDigit == -1) && 
+          lowDigit = i;
+          //cout << "Last digit" << "\n";
+        }
       }
+      //cout << "First string: " << bank.substr(0, lowDigit) << "\nSecond string: " << bank.substr((lowDigit + 1), (bank.length() - (lowDigit + 1))) << "\n";
+      bank = (bank.substr(0, lowDigit) + bank.substr((lowDigit + 1), (bank.length() - (lowDigit + 1))));
+      runCount++;
+      //cout << "Run count: " << runCount << "\t Bank: " << bank << "\tLength: " << bank.length() << "  Low digit: " << bank[lowDigit] << "  Index: " << lowDigit << "\n\n";
     }
-    
-    cout << "vBatteries size pre-pop:  " << vBatteries.size() << "\n";
-    
-    // sort batteries by indexes grouped by charges
-    sort (vBatteries.begin(), vBatteries.end(), compareGrouped);
-    
-    // extract first 12 elements (12 largest)
-    vBatteriesLen = vBatteries.size();
-    for (i = 12; i < vBatteriesLen; i++) {
-      vBatteries.pop_back();
-    }
-    
-    cout << "vBatteries size post-pop: " << vBatteries.size() << "\n";
-    
-    //cout << "Indexes sorted by index grouped by charges\n";
-    //cout << "index\t| charge\n";
-    //for (i = 0; i < vBatteries.size(); i++) {
-    //  cout << vBatteries.at(i).index << "\t| " << vBatteries.at(i).charge << "\n";
-    //}
-    
-    // sort values based on indexes
-    sort (vBatteries.begin(), vBatteries.end(), compareIndex);
-    
-    // concatinate
-    concat = "";
-    for (i = 0; i < vBatteries.size(); i++) {
-    	struct Battery b = vBatteries.at(i);
-    	concat  = concat + to_string(b.charge);
-    }
-    
-    // sum
-    joltage += stoll(concat);
-    cout << "Row joltage: " << concat << "\n";
+    totalJoltage += stoll(bank);
     cout << "\n";
   }
-  
-  cout << "Final joltage is: " << joltage;
-
-  return 0;
+  cout << "Total joltage = " << totalJoltage << "\n";
 }
+
+
+
