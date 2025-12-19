@@ -24,12 +24,13 @@ bool compareJunctions(Junction a, Junction b)
 
 int main() 
 {
-  int lineCount, closeId, circuitTotal;
-  double dist, oldDist, xDist, yDist, zDist;
+  int connections, lineCount, id, closeId, circuitTotal;
+  double oldDist, xDist, yDist, zDist;
   char comma;
   string filepath, inputText;
   vector<int> circuitSizes;
   
+  connections = 10;
   filepath = "testinput.txt";
   ifstream f(filepath);
   
@@ -43,6 +44,7 @@ int main()
   f.seekg(0, ios::beg);
   
   Junction junctions[lineCount];
+  double dist[lineCount][lineCount];
   lineCount = 0;
   do {
     Junction junction;
@@ -55,81 +57,110 @@ int main()
   cout << "\n";
   
   // find closest junction to each junction
-  oldDist = -1;
-  closeId = -1;
+  // oldDist = -1;
+  // closeId = -1;
   for (int i = 0; i < lineCount; i++) {
     //cout << "xDist\t" << "yDist\t" << "zDist\t" << "Dist\n";
     for (int j = 0; j < lineCount; j++) {
+      // calculate distances
       xDist = junctions[i].x - junctions[j].x;
       yDist = junctions[i].y - junctions[j].y;
       zDist = junctions[i].z - junctions[j].z;
-      dist = sqrt(pow(xDist, 2) + pow(yDist, 2) + pow(zDist, 2));
-      //cout << xDist << "\t" << yDist << "\t" << zDist << "\t" << dist << "\n";
-      if ((dist == 0) && (j == 0)) {
-        oldDist = 100000;
-      }
-      if ((dist != 0) && ((dist < oldDist) || (j == 0))) {
-        oldDist = dist;
-        closeId = junctions[j].id;
-      }
+      dist[i][j] = sqrt(pow(xDist, 2) + pow(yDist, 2) + pow(zDist, 2));
+      // //cout << xDist << "\t" << yDist << "\t" << zDist << "\t" << dist << "\n";
+      // // if new shortest distance, record
+      // if ((dist == 0) && (j == 0)) {
+      //   oldDist = 100000;
+      // }
+      // if ((dist != 0) && ((dist < oldDist) || (j == 0))) {
+      //   oldDist = dist;
+      //   closeId = junctions[j].id;
+      // }
     }
-    junctions[i].connectedId = closeId;
-    junctions[i].connectionDist = oldDist;
-    //cout << "Junction:\n";
-    //cout << junctions[i].x << "\t" << junctions[i].y << "\t" << junctions[i].z << "\t" << junctions[i].connectionDist << "\n\n";
+    // junctions[i].connectedId = closeId;
+    // junctions[i].connectionDist = oldDist;
+    // //cout << "Junction:\n";
+    // //cout << junctions[i].x << "\t" << junctions[i].y << "\t" << junctions[i].z << "\t" << junctions[i].connectionDist << "\n\n";
   }
   
-  // sort by distance
-  sort(junctions, junctions + lineCount, compareJunctions);
+  // // sort by distance
+  // sort(junctions, junctions + lineCount, compareJunctions);
 
-  cout << "ID" << "\t" << "ConnId" << "\t" << "Dist" << "\t" << "X" << "\t" << "Y" << "\t" << "Z" << "\n";
+  cout << "ID" << "\t" << "ConnID" << "\t" << "X" << "\t" << "Y" << "\t" << "Z" << "\t" <<  "Dist" << "\n";
   for (Junction j : junctions) 
-    cout << j.id << "\t" << j.connectedId << "\t" << j.connectionDist << "\t" << j.x << "\t" << j.y << "\t" << j.z << "\n";
+    cout << j.id << "\t" << j.connectedId << "\t" << j.x << "\t" << j.y << "\t" << j.z << "\t" << j.connectionDist << "\n";
   cout << "\n";
+
   // if junctions in same circuit, ignore
   // else, join
-  //(sizeof(junctions) / sizeof(junctions[0]))
-  for (int i = 0; i < 10; i++) {
+  id = -1;
+  closeId = -1;
+  for (int i = 0; i < connections; i++) {
     // find connected junc obj
-    if (junctions[i].connectedId == -1) {
-      continue;
+    // if (junctions[i].connectedId == -1) {
+    //   continue;
+    // }
+
+    // find shortest unconnected connection
+    oldDist = 100000;
+    for (int j = 0; j < lineCount; j++) {
+      for (int k = 0; k < lineCount; k++) {
+        // if new shortest distance, record
+        // Avoid self-connections and only consider shortest valid connection between different or unassigned circuits
+        if (j != k && dist[j][k] < oldDist &&
+            ((junctions[j].circuitNo == -1 && junctions[k].circuitNo == -1) ||
+             (junctions[j].circuitNo != junctions[k].circuitNo))) {
+          oldDist = dist[j][k];
+          id = j;
+          closeId = junctions[k].id;
+        } else if (j != k && junctions[j].circuitNo == junctions[k].circuitNo && junctions[j].circuitNo != -1) {
+          cout << "Junction " << j << "\t@ " << junctions[j].x << ", " << junctions[j].y << ", " << junctions[j].z << "\n";
+          cout << "and      " << k << "\t@ " << junctions[k].x << ", " << junctions[k].y << ", " << junctions[k].z << "\n";
+          cout << "already in circuit " << junctions[j].circuitNo << "\n\n";
+        }
+      }
     }
-    int j;
-    cout << "For junction " << junctions[i].id << "\n";
-    for (j = 0; j < ((sizeof(junctions) / sizeof(junctions[0]))); j++) {
-      if (junctions[i].connectedId == junctions[j].id) {
-        cout << "Circuit match found: " << junctions[i].id << " connected to " << junctions[j].id << "\n";
+    junctions[id].connectedId = closeId;
+    junctions[id].connectionDist = oldDist;
+
+    // connect
+    int connId;
+    cout << "For junction " << id << "\t@ " << junctions[id].x << ", " << junctions[id].y << ", " << junctions[id].z << "\n";
+    // debug output
+    for (connId = 0; connId < lineCount; connId++) {
+      if (junctions[id].connectedId == junctions[connId].id) {
+        cout << "Circuit match found: " << id << " connected to " << junctions[connId].id  << "\t@ " << junctions[connId].x << ", " << junctions[connId].y << ", " << junctions[connId].z << "\n";
         break;
       }
     }
-    if ((junctions[i].circuitNo == -1) && (junctions[j].circuitNo == -1)) {
+    if ((junctions[id].circuitNo == -1) && (junctions[connId].circuitNo == -1)) {
       // circuit tags starting at 1
-      junctions[i].circuitNo = circuitSizes.size();
+      junctions[id].circuitNo = circuitSizes.size();
       circuitSizes.push_back(1);
-      cout << "New circuit created: " << junctions[i].circuitNo << " size " << circuitSizes.back() << "\n";
+      cout << "New circuit created: " << junctions[id].circuitNo << " size " << circuitSizes.back() << "\n";
     }
-    else if (junctions[i].circuitNo == -1) {
-      junctions[i].circuitNo = junctions[j].circuitNo;
-      circuitSizes.at(junctions[j].circuitNo)++;
-      cout << "Junctions " << junctions[i].id << " added to circuit " << junctions[j].circuitNo << " new size " << circuitSizes.at(junctions[j].circuitNo) << "\n";
+    else if (junctions[id].circuitNo == -1) {
+      junctions[id].circuitNo = junctions[connId].circuitNo;
+      circuitSizes.at(junctions[connId].circuitNo)++;
+      cout << "Junctions " << junctions[id].id << " added to circuit " << junctions[connId].circuitNo << " new size " << circuitSizes.at(junctions[connId].circuitNo) << "\n";
     }
-    else if (junctions[j].circuitNo == -1) {
-      junctions[j].circuitNo = junctions[i].circuitNo;
-      circuitSizes.at(junctions[i].circuitNo)++;
-      cout << "Junctions " << junctions[j].id << " added to circuit " << junctions[i].circuitNo << " new size " << circuitSizes.at(junctions[i].circuitNo) << "\n";
+    else if (junctions[connId].circuitNo == -1) {
+      junctions[connId].circuitNo = junctions[id].circuitNo;
+      circuitSizes.at(junctions[id].circuitNo)++;
+      cout << "Junctions " << junctions[connId].id << " added to circuit " << junctions[id].circuitNo << " new size " << circuitSizes.at(junctions[id].circuitNo) << "\n";
     }
-    else if (junctions[i].circuitNo == junctions[j].circuitNo) {
+    else if (junctions[id].circuitNo == junctions[connId].circuitNo) {
       continue; // ignore
     }
     else {
       //  merger circuitSizes
-      int oldCircuitNo = junctions[j].circuitNo;
-      int newCircuitNo = junctions[i].circuitNo;
+      int oldCircuitNo = junctions[connId].circuitNo;
+      int newCircuitNo = junctions[id].circuitNo;
       circuitSizes.at(newCircuitNo) += circuitSizes.at(oldCircuitNo);
       circuitSizes.at(oldCircuitNo) = 0;
       cout << "Merging circuits " << oldCircuitNo << " into " << newCircuitNo << " new size " << circuitSizes.at(newCircuitNo) << "\n";
       // update all junctions with old circuit no
-      for (int k = 0; k < ((sizeof(junctions) / sizeof(junctions[0]))); k++) {
+      for (int k = 0; k < lineCount; k++) {
         if (junctions[k].circuitNo == oldCircuitNo) {
           junctions[k].circuitNo = newCircuitNo;
         }
